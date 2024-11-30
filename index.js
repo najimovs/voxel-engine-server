@@ -13,10 +13,30 @@ wss.on( "connection", ws => {
 	// When the server receives a message from the client
 	ws.on( "message", message => {
 
-		console.log( `Received message: ${ message }` )
+		message = message.toString()
 
-		// Send a response back to the client
-		ws.send( `Message received: ${ message }` )
+		const { type, data } = JSON.parse( message )
+
+		if ( type === "ATTACH" ) {
+
+			for ( const client of wss.clients ) {
+
+				if ( client !== ws && client.readyState === WebSocket.OPEN ) {
+
+					client.send( message )
+				}
+			}
+		}
+		else if ( type === "DETACH" ) {
+
+			for ( const client of wss.clients ) {
+
+				if ( client !== ws && client.readyState === WebSocket.OPEN ) {
+
+					client.send( message )
+				}
+			}
+		}
 	} )
 
 	// When the client disconnects
@@ -24,7 +44,4 @@ wss.on( "connection", ws => {
 
 		console.log( "A client disconnected." )
 	} )
-
-	// Send a welcome message to the client
-	ws.send( "Welcome to the WebSocket server!" )
 } )
